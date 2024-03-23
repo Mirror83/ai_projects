@@ -244,6 +244,6 @@ const intervalId = setInterval(() => {
   turn = (turn + 1) % 2;
 }, 1000);
 
-// I only made modifications to the driver code (after failing to implement this on my own)
-// The minimax algorithm, evaluationm findBestMove and the Move class
-// are from this site: https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
+// Most of the code is from this site: https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
+// However, I modified the dirver code and the findBestMove function to support
+// two computer players
