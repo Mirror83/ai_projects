@@ -202,14 +202,30 @@ function findBestMove(board, currentTurn) {
 
 // Driver code
 let board = [
-  ["_", "_", "_"],
-  ["_", "_", "_"],
+  ["_", "_", "x"],
+  ["_", "o", "_"],
   ["_", "_", "_"],
 ];
 
+const cells = document.querySelectorAll(".cell");
 let turn = 0;
 
-const cells = document.querySelectorAll(".cell");
+function placeTokenUi(currentBoard, row, col) {
+  const flatIndex = col * 3 + row;
+
+  const span = document.createElement("span");
+  span.textContent = currentBoard[row][col];
+  cells[flatIndex].appendChild(span);
+}
+
+for (let i = 0; i < 3; i++) {
+  for (let j = 0; j < 3; j++) {
+    if (board[i][j] != "_") {
+      placeTokenUi(board, i, j);
+    }
+  }
+}
+
 const playerIndicator = document.querySelector("#turn-indicator");
 
 const intervalId = setInterval(() => {
@@ -233,11 +249,7 @@ const intervalId = setInterval(() => {
   let bestMove = findBestMove(board, turn);
   board[bestMove.row][bestMove.col] = turn === 0 ? player : opponent;
 
-  const flatIndex = bestMove.col * 3 + bestMove.row;
-
-  const span = document.createElement("span");
-  span.textContent = board[bestMove.row][bestMove.col];
-  cells[flatIndex].appendChild(span);
+  placeTokenUi(board, bestMove.row, bestMove.col);
 
   turn = (turn + 1) % 2;
   playerIndicator.textContent = turn + 1;
