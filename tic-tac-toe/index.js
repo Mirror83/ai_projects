@@ -5,7 +5,8 @@ const PLAYER_ONE_TOKEN = "X";
 const PLAYER_TWO_TOKEN = "O";
 const EMPTY_CELL_TOKEN = "";
 
-const WIN_STATE = "win";
+const PLAYER_ONE_WIN_STATE = "player_one_win";
+const PLAYER_TWO_WIN_STATE = "player_two_win";
 const DRAW_STATE = "draw";
 const PLAY_STATE = "play";
 
@@ -44,47 +45,66 @@ function placeTokenUi(board, index) {
   cells[index].appendChild(tokenSpan);
 }
 
-function matches(board, indexOne, indexTwo, indexThree) {
+function matches(
+  board,
+  indexOne,
+  indexTwo,
+  indexThree,
+  token = EMPTY_CELL_TOKEN
+) {
+  let isTokenMatched = false;
+
+  if (token === EMPTY_CELL_TOKEN) {
+    // This is for checking a general win
+    isTokenMatched =
+      board[indexOne] != token &&
+      board[indexTwo] != token &&
+      board[indexThree] != token;
+  } else {
+    isTokenMatched =
+      board[indexOne] == token &&
+      board[indexTwo] == token &&
+      board[indexThree] == token;
+  }
+
   return (
     board[indexOne] === board[indexTwo] &&
     board[indexOne] === board[indexThree] &&
     board[indexTwo] === board[indexThree] &&
-    board[indexOne] != EMPTY_CELL_TOKEN &&
-    board[indexTwo] != EMPTY_CELL_TOKEN &&
-    board[indexThree] != EMPTY_CELL_TOKEN
+    isTokenMatched
   );
 }
 
-function firstRowMatches(board) {
-  return matches(board, 0, 1, 2);
+function firstRowMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 0, 1, 2, token);
 }
 
-function secondRowMatches(board) {
-  return matches(board, 3, 4, 5);
+function secondRowMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 3, 4, 5, token);
 }
 
-function thirdRowMatches(board) {
-  return matches(board, 6, 7, 8);
+function thirdRowMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 6, 7, 8, token);
 }
 
-function firstColumnMatches(board) {
-  return matches(board, 0, 3, 6);
+function firstColumnMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 0, 3, 6, token);
 }
 
-function secondColumnMatches(board) {
-  return matches(board, 1, 4, 7);
+function secondColumnMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 1, 4, 7, token);
 }
 
-function thirdColumnMatches(board) {
-  return matches(board, 2, 5, 8);
+function thirdColumnMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 2, 5, 8, token);
 }
 
-function diagonalFromZeroMatches(board) {
-  return matches(board, 0, 4, 8);
+function diagonalFromZeroMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 0, 4, 8, token);
 }
 
-function diagonalFromTwoMatches(board) {
-  return matches(board, 2, 4, 6);
+function diagonalFromTwoMatches(board, token = EMPTY_CELL_TOKEN) {
+  return matches(board, 2, 4, 6, token);
 }
 
 function updateTurn(turn) {
@@ -94,16 +114,16 @@ function updateTurn(turn) {
   return turn;
 }
 
-function isWin(board) {
+function isWin(board, token = EMPTY_CELL_TOKEN) {
   return (
-    firstRowMatches(board) ||
-    secondRowMatches(board) ||
-    thirdRowMatches(board) ||
-    firstColumnMatches(board) ||
-    secondColumnMatches(board) ||
-    thirdColumnMatches(board) ||
-    diagonalFromZeroMatches(board) ||
-    diagonalFromTwoMatches(board)
+    firstRowMatches(board, token) ||
+    secondRowMatches(board, token) ||
+    thirdRowMatches(board, token) ||
+    firstColumnMatches(board, token) ||
+    secondColumnMatches(board, token) ||
+    thirdColumnMatches(board, token) ||
+    diagonalFromZeroMatches(board, token) ||
+    diagonalFromTwoMatches(board, token)
   );
 }
 
@@ -118,7 +138,8 @@ function isDraw(board) {
 }
 
 function checkBoard(board) {
-  if (isWin(board)) return WIN_STATE;
+  if (isWin(board, PLAYER_ONE_TOKEN)) return PLAYER_ONE_WIN_STATE;
+  else if (isWin(board, PLAYER_TWO_TOKEN)) return PLAYER_TWO_WIN_STATE;
   else if (isDraw(board)) return DRAW_STATE;
   else return PLAY_STATE;
 }
@@ -168,9 +189,18 @@ function game(board, index) {
 
   if (boardState === PLAY_STATE) {
     turn = updateTurn(turn);
-  } else if (boardState === WIN_STATE) {
-    alert(`Player ${turn + 1} has won!`);
+  } else if (boardState === PLAYER_ONE_WIN_STATE) {
+    alert(`Player 1 has won!`);
+  } else if (boardState === PLAYER_TWO_WIN_STATE) {
+    alert(`Player 2 has won!`);
   } else {
     alert("Game is a draw.");
   }
+}
+
+function minimax(board, depth, isMaximizingPlayer) {
+  // Check if board is in a terminal state
+  const boardState = checkBoard(board);
+
+  if (boardState === DRAW_STATE) return 0;
 }
