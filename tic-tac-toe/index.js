@@ -212,6 +212,7 @@ let board = [
 let turn = 0;
 
 const cells = document.querySelectorAll(".cell");
+const playerIndicator = document.querySelector("#turn-indicator");
 
 const intervalId = setInterval(() => {
   let score = evaluate(board);
@@ -232,16 +233,16 @@ const intervalId = setInterval(() => {
   }
 
   let bestMove = findBestMove(board, turn);
-  console.log(bestMove);
   board[bestMove.row][bestMove.col] = turn === 0 ? player : opponent;
 
   const flatIndex = bestMove.col * 3 + bestMove.row;
-  console.log(flatIndex);
 
   const span = document.createElement("span");
   span.textContent = board[bestMove.row][bestMove.col];
   cells[flatIndex].appendChild(span);
+
   turn = (turn + 1) % 2;
+  playerIndicator.textContent = turn + 1;
 }, 1000);
 
 // Most of the code is from this site: https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
