@@ -1,206 +1,249 @@
-const PLAYER_ONE_TURN = 0;
-const PLAYER_TWO_TURN = 1;
+// Javascript program to find the
+// next optimal move for a player
+class Move {
+  constructor() {
+    let row, col;
+  }
+}
 
-const PLAYER_ONE_TOKEN = "X";
-const PLAYER_TWO_TOKEN = "O";
-const EMPTY_CELL_TOKEN = "";
+let player = "x",
+  opponent = "o";
 
-const PLAYER_ONE_WIN_STATE = "player_one_win";
-const PLAYER_TWO_WIN_STATE = "player_two_win";
-const DRAW_STATE = "draw";
-const PLAY_STATE = "play";
+// This function returns true if there are moves
+// remaining on the board. It returns false if
+// there are no moves left to play.
+function isMovesLeft(board) {
+  for (let i = 0; i < 3; i++)
+    for (let j = 0; j < 3; j++) if (board[i][j] == "_") return true;
 
-function clearBoard(board) {
-  for (let i = 0; i < 9; i++) {
-    board.push(EMPTY_CELL_TOKEN);
+  return false;
+}
+
+// This is the evaluation function as discussed
+// in the previous article ( http://goo.gl/sJgv68 )
+function evaluate(b) {
+  // Checking for Rows for X or O victory.
+  for (let row = 0; row < 3; row++) {
+    if (b[row][0] == b[row][1] && b[row][1] == b[row][2]) {
+      if (b[row][0] == player) return +10;
+      else if (b[row][0] == opponent) return -10;
+    }
   }
 
-  return [...board];
+  // Checking for Columns for X or O victory.
+  for (let col = 0; col < 3; col++) {
+    if (b[0][col] == b[1][col] && b[1][col] == b[2][col]) {
+      if (b[0][col] == player) return +10;
+      else if (b[0][col] == opponent) return -10;
+    }
+  }
+
+  // Checking for Diagonals for X or O victory.
+  if (b[0][0] == b[1][1] && b[1][1] == b[2][2]) {
+    if (b[0][0] == player) return +10;
+    else if (b[0][0] == opponent) return -10;
+  }
+
+  if (b[0][2] == b[1][1] && b[1][1] == b[2][0]) {
+    if (b[0][2] == player) return +10;
+    else if (b[0][2] == opponent) return -10;
+  }
+
+  // Else if none of them have
+  // won then return 0
+  return 0;
 }
 
-function isAvailable(board, index) {
-  return board[index] === EMPTY_CELL_TOKEN;
+// This is the minimax function. It
+// considers all the possible ways
+// the game can go and returns the
+// value of the board
+function minimax(board, depth, isMax) {
+  let score = evaluate(board);
+
+  // If Maximizer has won the game
+  // return his/her evaluated score
+  if (score == 10) return score;
+
+  // If Minimizer has won the game
+  // return his/her evaluated score
+  if (score == -10) return score;
+
+  // If there are no more moves and
+  // no winner then it is a tie
+  if (isMovesLeft(board) == false) return 0;
+
+  // If this maximizer's move
+  if (isMax) {
+    let best = -1000;
+
+    // Traverse all cells
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // Check if cell is empty
+        if (board[i][j] == "_") {
+          // Make the move
+          board[i][j] = player;
+
+          // Call minimax recursively
+          // and choose the maximum value
+          best = Math.max(best, minimax(board, depth + 1, !isMax));
+
+          // Undo the move
+          board[i][j] = "_";
+        }
+      }
+    }
+    return best;
+  }
+
+  // If this minimizer's move
+  else {
+    let best = 1000;
+
+    // Traverse all cells
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // Check if cell is empty
+        if (board[i][j] == "_") {
+          // Make the move
+          board[i][j] = opponent;
+
+          // Call minimax recursively and
+          // choose the minimum value
+          best = Math.min(best, minimax(board, depth + 1, !isMax));
+
+          // Undo the move
+          board[i][j] = "_";
+        }
+      }
+    }
+    return best;
+  }
 }
 
-function placeToken(board, index) {
-  if (!isAvailable(board, index)) return [...board];
+// This will return the best possible
+// move for the player
+function findBestMove(board, currentTurn) {
+  if (currentTurn === 0) {
+    let bestVal = -1000;
+    let bestMove = new Move();
+    bestMove.row = -1;
+    bestMove.col = -1;
 
-  if (turn === PLAYER_ONE_TURN) {
-    board[index] = PLAYER_ONE_TOKEN;
+    // Traverse all cells, evaluate
+    // minimax function for all empty
+    // cells. And return the cell
+    // with optimal value.
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // Check if cell is empty
+        if (board[i][j] == "_") {
+          // Make the move
+          board[i][j] = player;
+
+          // compute evaluation function
+          // for this move.
+          let moveVal = minimax(board, 0, false);
+
+          // Undo the move
+          board[i][j] = "_";
+
+          // If the value of the current move
+          // is more than the best value, then
+          // update best
+          if (moveVal > bestVal) {
+            bestMove.row = i;
+            bestMove.col = j;
+            bestVal = moveVal;
+          }
+        }
+      }
+    }
+
+    return bestMove;
   } else {
-    board[index] = PLAYER_TWO_TOKEN;
+    let bestVal = 1000;
+    let bestMove = new Move();
+    bestMove.row = -1;
+    bestMove.col = -1;
+
+    // Traverse all cells, evaluate
+    // minimax function for all empty
+    // cells. And return the cell
+    // with optimal value.
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < 3; j++) {
+        // Check if cell is empty
+        if (board[i][j] == "_") {
+          // Make the move
+          board[i][j] = opponent;
+
+          // compute evaluation function
+          // for this move.
+          let moveVal = minimax(board, 0, true);
+
+          // Undo the move
+          board[i][j] = "_";
+
+          // If the value of the current move
+          // is more than the best value, then
+          // update best
+          if (moveVal < bestVal) {
+            bestMove.row = i;
+            bestMove.col = j;
+            bestVal = moveVal;
+          }
+        }
+      }
+    }
+
+    return bestMove;
   }
-
-  return [...board];
 }
 
-function placeTokenUi(board, index) {
-  if (isAvailable(board, index)) return;
+// Driver code
+let board = [
+  ["_", "_", "_"],
+  ["_", "_", "_"],
+  ["_", "_", "_"],
+];
 
-  if (cells[index].querySelector("span")) return;
-
-  const tokenSpan = document.createElement("span");
-  tokenSpan.innerText = board[index];
-
-  cells[index].appendChild(tokenSpan);
-}
-
-function matches(
-  board,
-  indexOne,
-  indexTwo,
-  indexThree,
-  token = EMPTY_CELL_TOKEN
-) {
-  let isTokenMatched = false;
-
-  if (token === EMPTY_CELL_TOKEN) {
-    // This is for checking a general win
-    isTokenMatched =
-      board[indexOne] != token &&
-      board[indexTwo] != token &&
-      board[indexThree] != token;
-  } else {
-    isTokenMatched =
-      board[indexOne] == token &&
-      board[indexTwo] == token &&
-      board[indexThree] == token;
-  }
-
-  return (
-    board[indexOne] === board[indexTwo] &&
-    board[indexOne] === board[indexThree] &&
-    board[indexTwo] === board[indexThree] &&
-    isTokenMatched
-  );
-}
-
-function firstRowMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 0, 1, 2, token);
-}
-
-function secondRowMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 3, 4, 5, token);
-}
-
-function thirdRowMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 6, 7, 8, token);
-}
-
-function firstColumnMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 0, 3, 6, token);
-}
-
-function secondColumnMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 1, 4, 7, token);
-}
-
-function thirdColumnMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 2, 5, 8, token);
-}
-
-function diagonalFromZeroMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 0, 4, 8, token);
-}
-
-function diagonalFromTwoMatches(board, token = EMPTY_CELL_TOKEN) {
-  return matches(board, 2, 4, 6, token);
-}
-
-function updateTurn(turn) {
-  turn = (turn + 1) % 2;
-  turnIndicator.textContent = turn + 1;
-
-  return turn;
-}
-
-function isWin(board, token = EMPTY_CELL_TOKEN) {
-  return (
-    firstRowMatches(board, token) ||
-    secondRowMatches(board, token) ||
-    thirdRowMatches(board, token) ||
-    firstColumnMatches(board, token) ||
-    secondColumnMatches(board, token) ||
-    thirdColumnMatches(board, token) ||
-    diagonalFromZeroMatches(board, token) ||
-    diagonalFromTwoMatches(board, token)
-  );
-}
-
-function isDraw(board) {
-  // Assume that the current board state does not contain a win false
-  // Just checks if the board is filled
-  for (const token of board) {
-    if (token == EMPTY_CELL_TOKEN) return false;
-  }
-
-  return true;
-}
-
-function checkBoard(board) {
-  if (isWin(board, PLAYER_ONE_TOKEN)) return PLAYER_ONE_WIN_STATE;
-  else if (isWin(board, PLAYER_TWO_TOKEN)) return PLAYER_TWO_WIN_STATE;
-  else if (isDraw(board)) return DRAW_STATE;
-  else return PLAY_STATE;
-}
-
-function possibleBoards(board) {
-  const boards = [];
-
-  for (let index in board) {
-    const new_board = [...board];
-    if (!isAvailable(new_board, index)) continue;
-
-    boards.push(placeToken(new_board, index));
-  }
-
-  return boards;
-}
+let turn = 0;
 
 const cells = document.querySelectorAll(".cell");
-const turnIndicator = document.querySelector("#turn-indicator");
-let turn = PLAYER_ONE_TURN;
-
-let board = [];
-
-board = clearBoard(board);
-let boardState = PLAY_STATE;
 
 const intervalId = setInterval(() => {
-  const index = Math.round(Math.random() * 8);
-  game(board, index);
-}, 1000);
+  let score = evaluate(board);
 
-function game(board, index) {
-  if (boardState != PLAY_STATE) {
+  if (score === 10) {
+    alert("Player one wins!");
+    clearInterval(intervalId);
+    return;
+  } else if (score === -10) {
+    alert("Player two wins");
+    clearInterval(intervalId);
+    return;
+  }
+  if (!isMovesLeft(board)) {
+    alert("Game is a draw");
     clearInterval(intervalId);
     return;
   }
 
-  if (!isAvailable(board, index)) return;
+  let bestMove = findBestMove(board, turn);
+  console.log(bestMove);
+  board[bestMove.row][bestMove.col] = turn === 0 ? player : opponent;
 
-  board = placeToken(board, index);
+  const flatIndex = bestMove.col * 3 + bestMove.row;
+  console.log(flatIndex);
 
-  placeTokenUi(board, index);
+  const span = document.createElement("span");
+  span.textContent = board[bestMove.row][bestMove.col];
+  cells[flatIndex].appendChild(span);
+  turn = (turn + 1) % 2;
+}, 1000);
 
-  console.log(board);
-
-  boardState = checkBoard(board);
-
-  if (boardState === PLAY_STATE) {
-    turn = updateTurn(turn);
-  } else if (boardState === PLAYER_ONE_WIN_STATE) {
-    alert(`Player 1 has won!`);
-  } else if (boardState === PLAYER_TWO_WIN_STATE) {
-    alert(`Player 2 has won!`);
-  } else {
-    alert("Game is a draw.");
-  }
-}
-
-function minimax(board, depth, isMaximizingPlayer) {
-  // Check if board is in a terminal state
-  const boardState = checkBoard(board);
-
-  if (boardState === DRAW_STATE) return 0;
-}
+// I only made modifications to the driver code (after failing to implement this on my own)
+// The minimax algorithm, evaluationm findBestMove and the Move class
+// are from this site: https://www.geeksforgeeks.org/finding-optimal-move-in-tic-tac-toe-using-minimax-algorithm-in-game-theory/
