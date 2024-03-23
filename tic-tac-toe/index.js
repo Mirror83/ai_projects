@@ -9,18 +9,20 @@ const WIN_STATE = "win";
 const DRAW_STATE = "draw";
 const PLAY_STATE = "play";
 
-function clearBoard() {
-  for (var i = 0; i < 9; i++) {
+function clearBoard(board) {
+  for (let i = 0; i < 9; i++) {
     board.push(EMPTY_CELL_TOKEN);
   }
+
+  return [...board];
 }
 
-function isAvailable(index) {
+function isAvailable(board, index) {
   return board[index] === EMPTY_CELL_TOKEN;
 }
 
-function placeToken(index) {
-  if (!isAvailable(index)) return;
+function placeToken(board, index) {
+  if (!isAvailable(board, index)) return [...board];
 
   if (turn === PLAYER_ONE_TURN) {
     board[index] = PLAYER_ONE_TOKEN;
@@ -28,21 +30,21 @@ function placeToken(index) {
     board[index] = PLAYER_TWO_TOKEN;
   }
 
-  placeTokenUi(index);
+  return [...board];
 }
 
-function placeTokenUi(index) {
+function placeTokenUi(board, index) {
+  if (isAvailable(board, index)) return;
+
+  if (cells[index].querySelector("span")) return;
+
   const tokenSpan = document.createElement("span");
-  if (turn === PLAYER_ONE_TURN) {
-    tokenSpan.innerText = PLAYER_ONE_TOKEN;
-  } else {
-    tokenSpan.innerText = PLAYER_TWO_TOKEN;
-  }
+  tokenSpan.innerText = board[index];
 
   cells[index].appendChild(tokenSpan);
 }
 
-function matches(indexOne, indexTwo, indexThree) {
+function matches(board, indexOne, indexTwo, indexThree) {
   return (
     board[indexOne] === board[indexTwo] &&
     board[indexOne] === board[indexThree] &&
@@ -53,57 +55,59 @@ function matches(indexOne, indexTwo, indexThree) {
   );
 }
 
-function firstRowMatches() {
-  return matches(0, 1, 2);
+function firstRowMatches(board) {
+  return matches(board, 0, 1, 2);
 }
 
-function secondRowMatches() {
-  return matches(3, 4, 5);
+function secondRowMatches(board) {
+  return matches(board, 3, 4, 5);
 }
 
-function thirdRowMatches() {
-  return matches(6, 7, 8);
+function thirdRowMatches(board) {
+  return matches(board, 6, 7, 8);
 }
 
-function firstColumnMatches() {
-  return matches(0, 3, 6);
+function firstColumnMatches(board) {
+  return matches(board, 0, 3, 6);
 }
 
-function secondColumnMatches() {
-  return matches(1, 4, 7);
+function secondColumnMatches(board) {
+  return matches(board, 1, 4, 7);
 }
 
-function thirdColumnMatches() {
-  return matches(2, 5, 8);
+function thirdColumnMatches(board) {
+  return matches(board, 2, 5, 8);
 }
 
-function diagonalFromZeroMatches() {
-  return matches(0, 4, 8);
+function diagonalFromZeroMatches(board) {
+  return matches(board, 0, 4, 8);
 }
 
-function diagonalFromTwoMatches() {
-  return matches(2, 4, 6);
+function diagonalFromTwoMatches(board) {
+  return matches(board, 2, 4, 6);
 }
 
-function updateTurn() {
+function updateTurn(turn) {
   turn = (turn + 1) % 2;
   turnIndicator.textContent = turn + 1;
+
+  return turn;
 }
 
-function isWin() {
+function isWin(board) {
   return (
-    firstRowMatches() ||
-    secondRowMatches() ||
-    thirdRowMatches() ||
-    firstColumnMatches() ||
-    secondColumnMatches() ||
-    thirdColumnMatches() ||
-    diagonalFromZeroMatches() ||
-    diagonalFromTwoMatches()
+    firstRowMatches(board) ||
+    secondRowMatches(board) ||
+    thirdRowMatches(board) ||
+    firstColumnMatches(board) ||
+    secondColumnMatches(board) ||
+    thirdColumnMatches(board) ||
+    diagonalFromZeroMatches(board) ||
+    diagonalFromTwoMatches(board)
   );
 }
 
-function isDraw() {
+function isDraw(board) {
   // Assume that the current board state does not contain a win false
   // Just checks if the board is filled
   for (const token of board) {
@@ -113,32 +117,60 @@ function isDraw() {
   return true;
 }
 
-function checkBoard() {
-  if (isWin()) return WIN_STATE;
-  else if (isDraw()) return DRAW_STATE;
+function checkBoard(board) {
+  if (isWin(board)) return WIN_STATE;
+  else if (isDraw(board)) return DRAW_STATE;
   else return PLAY_STATE;
+}
+
+function possibleBoards(board) {
+  const boards = [];
+
+  for (let index in board) {
+    const new_board = [...board];
+    if (!isAvailable(new_board, index)) continue;
+
+    boards.push(placeToken(new_board, index));
+  }
+
+  return boards;
 }
 
 const cells = document.querySelectorAll(".cell");
 const turnIndicator = document.querySelector("#turn-indicator");
 let turn = PLAYER_ONE_TURN;
 
-const board = [];
+let board = [];
 
-clearBoard();
+board = clearBoard(board);
+let boardState = PLAY_STATE;
 
-cells.forEach((cell, index) => {
-  cell.addEventListener("click", () => {
-    placeToken(index);
+const intervalId = setInterval(() => {
+  const index = Math.round(Math.random() * 8);
+  game(board, index);
+}, 1000);
 
-    const boardState = checkBoard();
+function game(board, index) {
+  if (boardState != PLAY_STATE) {
+    clearInterval(intervalId);
+    return;
+  }
 
-    if (boardState === PLAY_STATE) {
-      updateTurn();
-    } else if (boardState === WIN_STATE) {
-      alert(`Player ${turn + 1} has won!`);
-    } else {
-      alert("Game is a draw.");
-    }
-  });
-});
+  if (!isAvailable(board, index)) return;
+
+  board = placeToken(board, index);
+
+  placeTokenUi(board, index);
+
+  console.log(board);
+
+  boardState = checkBoard(board);
+
+  if (boardState === PLAY_STATE) {
+    turn = updateTurn(turn);
+  } else if (boardState === WIN_STATE) {
+    alert(`Player ${turn + 1} has won!`);
+  } else {
+    alert("Game is a draw.");
+  }
+}
