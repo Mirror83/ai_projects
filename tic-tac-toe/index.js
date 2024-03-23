@@ -1,5 +1,3 @@
-// Javascript program to find the
-// next optimal move for a player
 class Move {
   constructor() {
     let row, col;
