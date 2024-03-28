@@ -21,7 +21,10 @@ class Jug:
 
     def __eq__(self, jug: object) -> bool:
         if isinstance(jug, Jug):
-            return self.current_volume == jug.current_volume and self.max_capacity == jug.max_capacity
+            return (
+                self.current_volume == jug.current_volume
+                and self.max_capacity == jug.max_capacity
+            )
         return False
 
     def __hash__(self) -> int:
