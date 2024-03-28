@@ -1,46 +1,40 @@
-from typing import Tuple
 from jug import Jug
-from jug_puzzle import JugPuzzle
-from collections import deque
+from puzzle import JugPuzzle
 
 
-def solve_bfs(a: Jug, b: Jug) -> bool:
-    """Solves using breadth first search"""
-    puzzle = JugPuzzle(3, 4)
-    queue: deque[Tuple[Jug, Jug]] = deque()
+def main():
+    print("Breadth-first search")
+    solution = JugPuzzle.solve_breadth_first_search(Jug(3), Jug(4))
 
-    visited = []
+    if solution:
+        JugPuzzle.print_solution_path(solution)
+    else:
+        print("No solution found")
 
-    start = puzzle.a, puzzle.b
+    print("Depth-limited search")
 
-    outcomes = puzzle.outcomes(puzzle.a, puzzle.b)
-    visited.append(start)
-    print(start)
+    depth = 6
+    depthInput = input(
+        f"Enter the desired depth (Leave empty for default depth of {depth}): "
+    )
 
-    for outcome in outcomes:
-        queue.append(outcome)
+    if depthInput != "":
+        depth = int(depthInput)
 
-    while len(queue) > 0:
-        current = queue.popleft()
-        print(current)
-        if current[0].current_volume == 2 or current[1].current_volume == 2:
-            return True
+    solutions = JugPuzzle.solve_depth_limited_search(Jug(3), Jug(4), max_depth=depth)
 
-        a = current[0]
-        b = current[1]
+    if len(solutions) > 0:
+        print(f"Found {len(solutions)} solution(s)")
 
-        outcomes = puzzle.outcomes(a, b)
-        visited.append(current)
+        if len(solutions) > 10:
+            print("Printing only the first 10 solutions")
+            solutions = solutions[:10]
 
-        for outcome in outcomes:
-            if outcome not in visited:
-                queue.append(outcome)
-
-    return False
+        for solution in solutions:
+            JugPuzzle.print_solution_path(solution)
+    else:
+        print("No solution found")
 
 
-if __name__ == '__main__':
-    a = Jug(3, 3)
-    b = Jug(4, 3)
-    puzzle = JugPuzzle(3, 4)
-    print(solve_bfs(a, b))
+if __name__ == "__main__":
+    main()
