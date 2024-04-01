@@ -9,7 +9,7 @@ class CellState(Enum):
         if self == CellState.UNOCCUPIED:
             return "."
         else:
-            return "X"
+            return "♕"
 
 
 class QueensBoard:
@@ -22,7 +22,8 @@ class QueensBoard:
 
     def __init__(self, n: int = 4):
         """Creates an n x n empty _board."""
-        self._board = [[CellState.UNOCCUPIED for _ in range(n)] for _ in range(n)]
+        self._board = [
+            [CellState.UNOCCUPIED for _ in range(n)] for _ in range(n)]
         self._num_queens = 0
 
     def size(self):
@@ -123,7 +124,8 @@ class QueensBoard:
         """
 
         if self.num_queens() > 0:
-            self._board = [[CellState.UNOCCUPIED for _ in range(self.size())] for _ in range(self.size())]
+            self._board = [[CellState.UNOCCUPIED for _ in range(
+                self.size())] for _ in range(self.size())]
             self._num_queens = 0
 
     def draw(self):
