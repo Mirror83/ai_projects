@@ -29,9 +29,10 @@ def find_empty_cell(grid):
     """
     Find an empty cell in the Sudoku grid.
     """
-    empty_cells = [(i, j) for i in range(9) for j in range(9) if grid[i][j] == 0]
+    #create a list of tuples containing the indices of empty cells
+    empty_cells = [(i, j) for i in range(9) for j in range(9) if grid[i][j] == 0] 
     if empty_cells:
-        return min(empty_cells, key=lambda cell: len(get_possible_values(grid, *cell)))
+        return min(empty_cells, key=lambda cell: len(get_possible_values(grid, *cell))) #heuristic selection
     return None, None  # No empty cell found
 
 def get_possible_values(grid, row, col):
@@ -56,7 +57,8 @@ def enforce_arc_consistency(grid):
         for val in possible_values.copy():
             if not is_valid_move(grid, row, col, val):
                 possible_values.remove(val)
-                grid[row][col] = 0
+                grid[row][col] = 0 #reset the cell
+                 # Add related cells to the queue for reprocessing
                 queue.extend((row, j) for j in range(9) if grid[row][j] == 0)
                 queue.extend((i, col) for i in range(9) if grid[i][col] == 0)
                 subgrid_row, subgrid_col = 3 * (row // 3), 3 * (col // 3)
@@ -75,15 +77,16 @@ def backtrack_solve(grid):
     """
     Recursively solve the Sudoku puzzle using backtracking with heuristic selection.
     """
-    row, col = find_empty_cell(grid)
+    row, col = find_empty_cell(grid)  # Find the indices of the next empty cell in the grid
     if row is None:  # If no empty cell is found, the puzzle is solved
         return True
     
     # Try placing values in the empty cell based on heuristic selection
     possible_values = get_possible_values(grid, row, col)
     for num in sorted(possible_values):
-        if is_valid_move(grid, row, col, num):
-            grid[row][col] = num
+        if is_valid_move(grid, row, col, num): #check if placing num is valid
+            grid[row][col] = num #update grid
+            enforce_arc_consistency(grid)
             if backtrack_solve(grid):  # Recursively solve the Sudoku puzzle
                 return True
             grid[row][col] = 0  # Backtrack if the current configuration is not valid
@@ -96,3 +99,6 @@ if solve_sudoku(grid):
     print(np.matrix(grid))
 else:
     print("\nNo solution exists.")
+
+
+#Improvement by reduction of search space, early prunning of invalid choices, improved heuristic selection, systematic approch(rarely overlook valid options)
