@@ -1,8 +1,12 @@
+import math
 import numpy as np
 from grid import grid
 
+import timeit
+
 print("\nGrid:")
 print(np.matrix(grid))
+
 
 def is_valid_move(grid, row, col, num):
     """
@@ -11,19 +15,20 @@ def is_valid_move(grid, row, col, num):
     # Check row
     if num in grid[row]:
         return False
-    
+
     # Check column
     if num in [grid[i][col] for i in range(9)]:
         return False
-    
+
     # Check subgrid
     subgrid_row, subgrid_col = 3 * (row // 3), 3 * (col // 3)
     for i in range(3):
         for j in range(3):
             if grid[subgrid_row + i][subgrid_col + j] == num:
                 return False
-    
+
     return True
+
 
 def find_empty_cell(grid):
     """
@@ -34,16 +39,22 @@ def find_empty_cell(grid):
         return min(empty_cells, key=lambda cell: len(get_possible_values(grid, *cell)))
     return None, None  # No empty cell found
 
+
 def get_possible_values(grid, row, col):
     """
     Get possible values that can be placed in the cell at (row, col).
     """
     possible_values = set(range(1, 10))
     possible_values -= set(grid[row])  # Remove values in the row
-    possible_values -= set(grid[i][col] for i in range(9))  # Remove values in the column
+    possible_values -= set(
+        grid[i][col] for i in range(9)
+    )  # Remove values in the column
     subgrid_row, subgrid_col = 3 * (row // 3), 3 * (col // 3)
-    possible_values -= set(grid[subgrid_row + i][subgrid_col + j] for i in range(3) for j in range(3))  # Remove values in the subgrid
+    possible_values -= set(
+        grid[subgrid_row + i][subgrid_col + j] for i in range(3) for j in range(3)
+    )  # Remove values in the subgrid
     return possible_values
+
 
 def enforce_arc_consistency(grid):
     """
@@ -60,16 +71,21 @@ def enforce_arc_consistency(grid):
                 queue.extend((row, j) for j in range(9) if grid[row][j] == 0)
                 queue.extend((i, col) for i in range(9) if grid[i][col] == 0)
                 subgrid_row, subgrid_col = 3 * (row // 3), 3 * (col // 3)
-                queue.extend((subgrid_row + i, subgrid_col + j) for i in range(3) for j in range(3) if grid[subgrid_row + i][subgrid_col + j] == 0)
+                queue.extend(
+                    (subgrid_row + i, subgrid_col + j)
+                    for i in range(3)
+                    for j in range(3)
+                    if grid[subgrid_row + i][subgrid_col + j] == 0
+                )
     return True
+
 
 def solve_sudoku(grid):
     """
     Solve the Sudoku puzzle using backtracking with arc consistency and heuristic selection of cells and values.
     """
-    if not enforce_arc_consistency(grid):
-        return False
     return backtrack_solve(grid)
+
 
 def backtrack_solve(grid):
     """
@@ -78,21 +94,35 @@ def backtrack_solve(grid):
     row, col = find_empty_cell(grid)
     if row is None:  # If no empty cell is found, the puzzle is solved
         return True
-    
+
     # Try placing values in the empty cell based on heuristic selection
     possible_values = get_possible_values(grid, row, col)
     for num in sorted(possible_values):
         if is_valid_move(grid, row, col, num):
             grid[row][col] = num
+            # Try re-running the program with the line below commented.
+            # I think that this is where the arc consistency enforcement should be done, but
+            # you should confirm this and communicate it if it is not.
+            enforce_arc_consistency(grid)
             if backtrack_solve(grid):  # Recursively solve the Sudoku puzzle
                 return True
             grid[row][col] = 0  # Backtrack if the current configuration is not valid
-    
+
     return False  # No valid number found for the current empty cell
 
-# Solve the Sudoku puzzle
-if solve_sudoku(grid):
-    print("\nSolution:")
-    print(np.matrix(grid))
-else:
-    print("\nNo solution exists.")
+
+def main():
+    # Solve the Sudoku puzzle
+    if solve_sudoku(grid):
+        print("\nSolution:")
+        print(np.matrix(grid))
+    else:
+        print("\nNo solution exists.")
+
+
+# The globals=globals() line is to give timeit access to all the global values
+# in this file, including the main function written above
+execution_time = timeit.timeit("main()", globals=globals(), number=1000)
+
+print(f"Total execution time: {execution_time}")
+# main()
