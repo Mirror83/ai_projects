@@ -5,44 +5,134 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tic-Tac-Toe</title>
     <style>
+      :root {
+        --board-width: 400px;
+      }
+
       * {
         box-sizing: border-box;
       }
+      body {
+        font-family: sans-serif;
+        margin: 0;
+      }
+
       .content {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+      }
+
+      .config {
+        background-color: aliceblue;
+        padding: 2rem;
+      }
+      
+      .game-board {
         display: flex;
+        flex-direction: column;
         height: 100vh;
         align-items: center;
         justify-content: center;
       }
+
       .board {
         display: grid;
         grid-template-areas:
           "a a a"
           "b b b"
           "c c c";
-        width: 300px;
-        height: 300px;
+        width: var(--board-width);
+        height: var(--board-width);
         margin-inline: auto;
       }
+
       .cell {
         display: flex;
         align-items: center;
         justify-content: center;
 
-        width: 100px;
-        height: 100px;
+        width: calc(var(--board-width) / 3);
+        height: calc(var(--board-width) / 3);
         border: 1px solid black;
       }
 
       .cell span {
         font-size: 5rem;
       }
+
+      #turn-indicator {
+        font-weight: bold;
+        font-size: larger;
+      }
+
+      button {
+        margin-top: 2rem;
+      }
+
+      dialog {
+        border-radius: 1rem;
+        width: 10rem;
+      }
+
+      ::backdrop {
+        background-color: rgba(0,0,0, 0.5);
+        filter: blur(5px);
+      }
+
+      .mode-selection {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .hidden {
+        display: none;
+      }
+
     </style>
   </head>
   <body>
     <div class="content">
-      <div>
+      <dialog>
+        <p>Game over</p>
+        <button autofocus>Restart</button>
+      </dialog>
+
+      <div class="config">
         <h1>Tic-Tac-Toe</h1>
+          <div>
+            <h2>Mode</h2>
+            <div class="mode-selection">
+              <div>
+                <input type="radio" name="mode" id="cpu-vs-cpu">
+                <label for="cpu-vs-cpu">CPU-vs-CPU</label>
+              </div>
+              <div>
+                <input type="radio" name="mode" id="player-vs-cpu" checked>
+                <label for="player-vs-cpu">Player-vs-CPU</label>
+              </div>
+            </div>
+            <div id="algorithm-selection" class="hidden">
+              <h3>Algorithm</h3>
+              <div>
+                <input type="radio" name="algorithm" id="minimax" checked>
+                <label for="minimax">Minimax</label>
+              </div>
+              <div>
+                <input type="radio" name="algorithm" id="pruning">
+                <label for="pruning">Minimax (with α-β pruning)</label>
+              </div>
+              <div>
+                <input type="radio" name="algorithm" id="expectimax">
+                <label for="expectimax">Expectimax</label>
+              </div>
+              <button id="play">Play</button>
+            </div>
+          </div>
+      </div>
+      
+      <div class="game-board">
         <p>Player <span id="turn-indicator">1</span>'s turn</p>
         <div class="board">
           <div class="cell"></div>
@@ -58,7 +148,8 @@
       </div>
     </div>
 
-    <script src="index.js"></script>
+    <script type="module" src="index.js"></script>
+    <script type="module" src="utils.js"></script>
   </body>
 </html>
 
