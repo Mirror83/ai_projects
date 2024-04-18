@@ -1,5 +1,6 @@
 import enum
 import heapq
+import timeit
 from typing import List, Tuple
 import random
 import tkinter as tk
@@ -161,7 +162,6 @@ class A_Star_Search:
         queens: List[Cell] = []
 
         while len(queens) < self.n:
-            print('='*35)
             queens.clear()
             self.board.clear_board()
             first_queen = random.randint(0, self.n - 1)
@@ -174,20 +174,16 @@ class A_Star_Search:
 
                 heapq.heapify(frontier)
 
-                print(f'Frontier: ', frontier)
-
                 queen = heapq.heappop(frontier)
 
                 if i == 0:
                     self.board.place_queen(i, first_queen)
                     queen = self.board.board[i][first_queen]
                     queens.append(queen)
-                    print("Queen chosen: ", queen)
 
                 if queen.h == 0 and i != 0:
                     self.board.place_queen(queen.row, queen.col)
                     queens.append(queen)
-                    print("Queen chosen: ", queen)
 
         self.board.draw_board()
 
@@ -199,4 +195,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # print(timeit.timeit("main()", globals=globals(), number=100))
     main()
