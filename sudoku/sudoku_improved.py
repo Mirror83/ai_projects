@@ -50,20 +50,23 @@ def enforce_arc_consistency(grid):
     """
     Enforce arc consistency on the Sudoku grid.
     """
+    # Initialize the queue with coordinates of empty cells
     queue = [(i, j) for i in range(9) for j in range(9) if grid[i][j] == 0]
     while queue:
-        row, col = queue.pop(0)
-        possible_values = get_possible_values(grid, row, col)
+        row, col = queue.pop(0)  # Pop coordinates of a cell from the queue for processing
+        possible_values = get_possible_values(grid, row, col)  # Get possible values for the current cell
+         # Iterate through possible values for the current cell
         for val in possible_values.copy():
-            if not is_valid_move(grid, row, col, val):
+            if not is_valid_move(grid, row, col, val): 
                 possible_values.remove(val)
                 grid[row][col] = 0 #reset the cell
                  # Add related cells to the queue for reprocessing
-                queue.extend((row, j) for j in range(9) if grid[row][j] == 0)
-                queue.extend((i, col) for i in range(9) if grid[i][col] == 0)
+                queue.extend((row, j) for j in range(9) if grid[row][j] == 0) #same row
+                queue.extend((i, col) for i in range(9) if grid[i][col] == 0) #same column
+                #add the cells in the same subgrid
                 subgrid_row, subgrid_col = 3 * (row // 3), 3 * (col // 3)
                 queue.extend((subgrid_row + i, subgrid_col + j) for i in range(3) for j in range(3) if grid[subgrid_row + i][subgrid_col + j] == 0)
-    return True
+    return True # If the loop completes without returning False, the grid is consistent
 
 def solve_sudoku(grid):
     """
