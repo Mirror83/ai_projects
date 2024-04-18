@@ -1,3 +1,4 @@
+import random
 from typing import List
 from collections import deque
 import enum
@@ -95,20 +96,32 @@ class QueensBoard:
         return True
 
 
-class AC3:
+class CSP:
     def __init__(self, board: QueensBoard) -> None:
         self.board = board
         self.domain = board.board
 
     def initialize_domain(self) -> List:
-        for row in self.domain:
-            for cell in row:
-                cell.value = CellState.OCCUPIED
+        chosen_indices = set()
+
+        for i in range(self.board.n):
+            j = random.randint(0, self.board.n - 1)
+
+            while j in chosen_indices:
+                j = random.randint(0, self.board.n - 1)
+
+            self.board.place_queen(i, j)
+            chosen_indices.add(j)
+
+        print('Initial Domain: ')
+        self.board.draw_board()
 
     def solve(self) -> bool:
         self.initialize_domain()
         self.ac3()
         self.board.board = self.domain
+
+        print('Arc consistent Domain: ')
         self.board.draw_board()
 
     def ac3(self):
@@ -119,7 +132,6 @@ class AC3:
 
         while queue:
             cell = queue.popleft()
-            print(self.revise(cell))
             if self.revise(cell):
                 if not cell.value:
                     return False
@@ -165,5 +177,7 @@ class AC3:
 
 if __name__ == "__main__":
     board = QueensBoard(4)
-    ac3 = AC3(board)
+
+    ac3 = CSP(board)
+
     ac3.solve()
