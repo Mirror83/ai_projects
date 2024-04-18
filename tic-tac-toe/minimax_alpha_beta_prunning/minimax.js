@@ -4,7 +4,7 @@ function bestMove() {
     let bestScore = -Infinity; // Initialize bestScore as negative infinity
     let move; // Store the best move
     let alpha = -Infinity; // Initialize alpha as negative infinity for alpha-beta pruning
-    let beta = Infinity; // Initialize beta as positive infinity for alpha-beta pruning
+    let beta = Infinity;
 
     // Loop through all positions on the board
     for (let i = 0; i < 3; i++) {
@@ -48,7 +48,7 @@ function minimax(board, depth, isMaximizing, alpha, beta) {
 
     if (isMaximizing) {
         // Maximizing player's turn (AI)
-        let bestScore = -Infinity;
+        let bestScore = -Infinity; // Any move that the AI explores is better than the initial best Score
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 // Check if the spot is available
@@ -72,7 +72,7 @@ function minimax(board, depth, isMaximizing, alpha, beta) {
         return bestScore; // Return the best score for maximizing player
     } else {
         // Minimizing player's turn (Human)
-        let bestScore = Infinity;
+        let bestScore = Infinity; // Any move by the human will have a lower score than the initial bestScore
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 // Check if the spot is available
