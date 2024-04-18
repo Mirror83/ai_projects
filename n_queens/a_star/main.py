@@ -86,28 +86,33 @@ class A_Star_Search:
         row = cell.row
         col = cell.col
         h = 0
+
+        # Current row
         for i, cell in enumerate(self.board.board[row]):
             if i != col and cell.value == CellState.OCCUPIED:
                 h += 1
 
         # Current column
-        for current_row in range(self.board.n):
+        for current_row in range(self.n):
             if self.board.board[current_row][col].value == CellState.OCCUPIED:
                 h += 1
 
         # Relative negatively sloping diagonal
-        current_col = col + 1
-        for current_row in range(row + 1, self.board.n):
-            if current_col < self.board.n and self.board.board[current_row][current_col].value == CellState.OCCUPIED:
-                h += 1
-            current_col += 1
-
-        # Relative positively sloping diagonal
         current_col = col - 1
-        for current_row in range(row + 1, self.board.n):
-            if current_col >= 0 and self.board.board[current_row][current_col].value == CellState.OCCUPIED:
+        for row in range(row - 1, -1, -1):
+            if current_col < 0:
+                break
+            if self.board.board[row][current_col].value == CellState.OCCUPIED:
                 h += 1
             current_col -= 1
+
+        current_col = col + 1
+        for row in range(row - 1, -1, -1):
+            if current_col >= self.n:
+                break
+            if self.board.board[row][current_col].value == CellState.OCCUPIED:
+                h += 1
+            current_col += 1
 
         return h
 
@@ -122,9 +127,6 @@ class A_Star_Search:
 
             heapq.heapify(frontier)
 
-            print("Frontier at ", i, "th row")
-            print(frontier)
-
             queen = heapq.heappop(frontier)
 
             print("Queen chosen: ", queen)
@@ -135,7 +137,7 @@ class A_Star_Search:
 
 
 def main():
-    n = 4
+    n = 8
     a_star = A_Star_Search(n)
     a_star.solve()
 
