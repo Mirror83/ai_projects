@@ -1,6 +1,7 @@
 import enum
 import heapq
 from typing import List, Tuple
+import random
 
 
 # Visualization of the chessboard
@@ -72,8 +73,19 @@ class QueensBoard:
         for row in self.board:
             print(" ".join(cell.value.draw() for cell in row))
 
+    def is_valid(self, row: int, col: int) -> bool:
+        return (row >= 0 and row < self.n) and (col >= 0 and col <= self.n)
+
     def place_queen(self, row: int, col: int) -> None:
-        self.board[row][col].value = CellState.OCCUPIED
+        if self.is_valid(row, col):
+            self.board[row][col].value = CellState.OCCUPIED
+
+        else:
+            print('Out of range')
+
+    def clear_board(self):
+        self.board = [[Cell(i, j) for j in range(self.n)]
+                      for i in range(self.n)]
 
 
 class A_Star_Search:
@@ -99,39 +111,54 @@ class A_Star_Search:
 
         # Relative negatively sloping diagonal
         current_col = col - 1
-        for row in range(row - 1, -1, -1):
+        for r in range(row - 1, -1, -1):
             if current_col < 0:
                 break
-            if self.board.board[row][current_col].value == CellState.OCCUPIED:
+            if self.board.board[r][current_col].value == CellState.OCCUPIED:
                 h += 1
             current_col -= 1
 
         current_col = col + 1
-        for row in range(row - 1, -1, -1):
+        for r in range(row - 1, -1, -1):
             if current_col >= self.n:
                 break
-            if self.board.board[row][current_col].value == CellState.OCCUPIED:
+            if self.board.board[r][current_col].value == CellState.OCCUPIED:
                 h += 1
             current_col += 1
 
         return h
 
     def solve(self):
+        queens: List[Cell] = []
 
-        for i in range(self.n):
-            frontier = [v for v in self.board.board[i]]
+        while len(queens) < self.n:
+            print('='*35)
+            queens.clear()
+            self.board.clear_board()
+            first_queen = random.randint(0, self.n - 1)
+            for i in range(self.n):
+                frontier = [v for v in self.board.board[i]]
 
-            for front in frontier:
-                front.h = self.heuristic(front)
-                front.f = front.g + front.h
+                for front in frontier:
+                    front.h = self.heuristic(front)
+                    front.f = front.g + front.h
 
-            heapq.heapify(frontier)
+                heapq.heapify(frontier)
 
-            queen = heapq.heappop(frontier)
+                print(f'Frontier: ', frontier)
 
-            print("Queen chosen: ", queen)
+                queen = heapq.heappop(frontier)
 
-            self.board.place_queen(queen.row, queen.col)
+                if i == 0:
+                    self.board.place_queen(i, first_queen)
+                    queen = self.board.board[i][first_queen]
+                    queens.append(queen)
+                    print("Queen chosen: ", queen)
+
+                if queen.h == 0 and i != 0:
+                    self.board.place_queen(queen.row, queen.col)
+                    queens.append(queen)
+                    print("Queen chosen: ", queen)
 
         self.board.draw_board()
 
