@@ -2,6 +2,7 @@ import enum
 import heapq
 from typing import List, Tuple
 import random
+import tkinter as tk
 
 
 # Visualization of the chessboard
@@ -72,6 +73,34 @@ class QueensBoard:
     def draw_board(self) -> None:
         for row in self.board:
             print(" ".join(cell.value.draw() for cell in row))
+
+        self.gui_board()
+
+    def gui_board(self):
+        root = tk.Tk()
+        root.title(f'{self.n}-Queens')
+        root.geometry('600x600')
+        canvas = tk.Canvas(root, width=500, height=500)
+        canvas.pack(padx=100, pady=100)
+        for row in self.board:
+            for cell in row:
+                x = cell.col * 50
+                y = cell.row * 50
+
+                color = 'white' if (x + y) % 100 == 0 else 'black'
+                piece_color = 'black' if (x + y) % 100 == 0 else 'white'
+
+                canvas.create_rectangle(
+                    x, y, x + 50, y + 50, fill=color, outline='black')
+
+                if cell.value == CellState.OCCUPIED:
+                    canvas.create_text(
+                        x + 25, y + 25, text=cell.value.draw(), fill=piece_color, font=('Arial', 20))
+
+        for i, row in enumerate(self.board):
+            for j, cell in enumerate(row):
+                pass
+        root.mainloop()
 
     def is_valid(self, row: int, col: int) -> bool:
         return (row >= 0 and row < self.n) and (col >= 0 and col <= self.n)
