@@ -1,69 +1,169 @@
-class CSP:
-    def __init__(self, variables, domains, constraints, neighbors):
-        self.variables = variables
-        self.domains = domains
-        self.constraints = constraints
-        self.neighbors = neighbors
+from typing import List
+from collections import deque
+import enum
 
 
-def initialize_csp(n):
-    variables = [i for i in range(n)]
-    domains = {i: [j for j in range(n)] for i in range(n)}
-    neighbors = {i: [] for i in range(n)}
-    for i in range(n):
-        for j in range(i + 1, n):
-            neighbors[i].append(j)
-            neighbors[j].append(i)
-    return CSP(variables, domains, n_queens_constraint, neighbors)
+class CellState(enum.Enum):
+    OCCUPIED = enum.auto()
+    UNOCCUPIED = enum.auto()
+
+    def draw(self) -> str:
+        if self == CellState.UNOCCUPIED:
+            return "."
+        else:
+            return "♕"
+
+    def __str__(self) -> str:
+        return self.draw()
+
+    def __repr__(self) -> str:
+        return self.draw()
+
+    def __gt__(self, other: 'CellState') -> bool:
+        if self == CellState.OCCUPIED and other == CellState.UNOCCUPIED:
+            return True
+        return False
+
+    def __lt__(self, other: 'CellState') -> bool:
+        if self == CellState.UNOCCUPIED and other == CellState.OCCUPIED:
+            return True
+        return False
 
 
-def n_queens_constraint(X_i, x, X_j, y):
-    return x != y and abs(x - y) != abs(X_i - X_j)
+class Cell:
+    def __init__(self, row: int, col: int):
+        self.value = CellState.UNOCCUPIED
+        self.row = row
+        self.col = col
+        self.g = 0
+        self.h = 0
+        self.f = 0
+
+    def __eq__(self, other: 'Cell'):
+        return self.row == other.row and self.col == other.col
+
+    def __repr__(self):
+        return f'\nCell({self.row}, {self.col}) -> {self.value} g: {self.g} h: {self.h} f: {self.f}\n'
+
+    def __lt__(self, other: 'Cell'):
+        return self.f < other.f
+
+    def __gt__(self, other: 'Cell'):
+        return self.f > other.f
 
 
-def revise(csp, X_i, X_j):
-    revised = False
-    for x in csp.domains[X_i][:]:
-        if not any(csp.constraints(X_i, x, X_j, y) for y in csp.domains[X_j]):
-            csp.domains[X_i].remove(x)
-            revised = True
-    return revised
+class QueensBoard:
+    def __init__(self, n) -> None:
+        self.n = n
+        self.board = [[Cell(i, j) for j in range(n)] for i in range(n)]
 
+    def draw_board(self) -> None:
+        for row in self.board:
+            print(" ".join(cell.value.draw() for cell in row))
 
-def AC3(csp):
-    queue = [(X_i, X_j) for X_i in csp.variables for X_j in csp.neighbors[X_i]]
-    while queue:
-        (X_i, X_j) = queue.pop(0)
-        if revise(csp, X_i, X_j):
-            if len(csp.domains[X_i]) == 0:
+    def place_queen(self, row: int, col: int) -> None:
+        self.board[row][col].value = CellState.OCCUPIED
+
+    def remove_queen(self, row: int, col: int) -> None:
+        self.board[row][col].value = CellState.UNOCCUPIED
+
+    def is_safe(self, row: int, col: int) -> bool:
+        for i in range(self.n):
+            if self.board[row][i].value == CellState.OCCUPIED:
                 return False
-            for X_k in csp.neighbors[X_i]:
-                if X_k != X_j:
-                    queue.append((X_k, X_i))
-    return True
+            if self.board[i][col].value == CellState.OCCUPIED:
+                return False
+
+        for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+            if self.board[i][j].value == CellState.OCCUPIED:
+                return False
+
+        for i, j in zip(range(row, -1, -1), range(col, self.n)):
+            if self.board[i][j].value == CellState.OCCUPIED:
+                return False
+
+        return True
+
+    def is_valid(self, row: int, col: int) -> bool:
+        return row >= 0 and col >= 0 and row < self.n and col < self.n
+
+    def is_goal(self) -> bool:
+        for row in self.board:
+            for cell in row:
+                if cell.value == CellState.UNOCCUPIED:
+                    return False
+        return True
 
 
-def n_queens_AC3(n):
-    csp = initialize_csp(n)
-    if AC3(csp):
-        return csp  # Returns a solution
-    else:
-        return "No solution exists"
+class AC3:
+    def __init__(self, board: QueensBoard) -> None:
+        self.board = board
+        self.domain = board.board
 
-# Helper function to print the solution
+    def initialize_domain(self) -> List:
+        for row in self.domain:
+            for cell in row:
+                cell.value = CellState.OCCUPIED
+
+    def solve(self) -> bool:
+        self.initialize_domain()
+        self.ac3()
+        self.board.board = self.domain
+        self.board.draw_board()
+
+    def ac3(self):
+        queue = deque()
+        for row in self.domain:
+            for cell in row:
+                queue.append(cell)
+
+        while queue:
+            cell = queue.popleft()
+            print(self.revise(cell))
+            if self.revise(cell):
+                if not cell.value:
+                    return False
+
+    def revise(self, cell: Cell) -> bool:
+        revised = False
+        neighbors = self.get_neighbors(cell)
+
+        for neighbor in neighbors:
+            if neighbor.value == CellState.OCCUPIED:
+                cell.value = CellState.UNOCCUPIED
+                revised = True
+        return revised
+
+    def get_neighbors(self, cell: Cell):
+        neighbors = []
+
+        for row in self.domain:
+            if row[cell.col] != cell:
+                neighbors.append(row[cell.col])
+
+        for i in range(len(self.domain)):
+            if 0 <= cell.row + i < len(self.domain) and 0 <= cell.col + i < len(self.domain):
+                neighbor = self.domain[cell.row + i][cell.col + i]
+                if neighbor != cell:
+                    neighbors.append(neighbor)
+            if 0 <= cell.row - i < len(self.domain) and 0 <= cell.col - i < len(self.domain):
+                neighbor = self.domain[cell.row - i][cell.col - i]
+                if neighbor != cell:
+                    neighbors.append(neighbor)
+
+        for i in range(len(self.domain)):
+            if 0 <= cell.row + i < len(self.domain) and 0 <= cell.col - i < len(self.domain):
+                neighbor = self.domain[cell.row + i][cell.col - i]
+                if neighbor != cell:
+                    neighbors.append(neighbor)
+            if 0 <= cell.row - i < len(self.domain) and 0 <= cell.col + i < len(self.domain):
+                neighbor = self.domain[cell.row - i][cell.col + i]
+                if neighbor != cell:
+                    neighbors.append(neighbor)
+        return neighbors
 
 
-def print_solution(csp):
-    solution = [-1] * len(csp.variables)
-    for var in csp.variables:
-        solution[var] = csp.domains[var][0]
-    print("N-Queens solution:", solution)
-
-
-# Example usage
-n = 8  # Size of the chessboard
-result = n_queens_AC3(n)
-if result != "No solution exists":
-    print_solution(result)
-else:
-    print(result)
+if __name__ == "__main__":
+    board = QueensBoard(4)
+    ac3 = AC3(board)
+    ac3.solve()
