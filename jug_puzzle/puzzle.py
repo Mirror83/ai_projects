@@ -29,8 +29,8 @@ class Outcome:
 
 class JugPuzzle:
     """
-    Solves the problem of measuring 2 liters using only a pair of unmeasured
-    3 and 4 liter jugs
+    Solves the problem of measuring 2 liters using only a pair of uncallibrated 
+    (i.e do not have measurement markings) 3 and 4 liter jugs
     """
 
     @staticmethod
